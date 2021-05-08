@@ -60,6 +60,7 @@ def remove_headers(h):
             h.pop(i)
         except:
             pass
+    return h
 
 
 DEALER_KEY = os.environ["DEALER_KEY"]
