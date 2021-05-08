@@ -6,6 +6,7 @@ from flask import Flask, request, Response
 from random import choice
 from json import dumps, loads
 from threading import Thread
+import os
 
 app = Flask(__name__)
 
@@ -61,6 +62,9 @@ def remove_headers(h):
             pass
 
 
+DEALER_KEY = os.environ["DEALER_KEY"]
+
+
 @app.route("/", methods=methods)
 @app.route("/<path:p>", methods=methods)
 def catch_all(p=""):
@@ -74,7 +78,7 @@ def catch_all(p=""):
     headers = remove_headers(lower_dict(request.headers))
     response: requests.Response
 
-    response = func(url, headers=headers, data=data)
+    response = func(url, headers={**headers, "x-access-key": DEALER_KEY}, data=data)
     response_headers = response.headers
     invalidate_keys = response_headers.get("x-invalidate")
     did_invalidate = invalidate_keys is not None
