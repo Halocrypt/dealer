@@ -23,7 +23,11 @@ def others(x):
 def invalidate(keys, current):
     other_hosts = others(current)
     for i in other_hosts:
-        requests.post(f"https://{i}/admin/-/invalidate/", json={"keys": keys})
+        requests.post(
+            f"https://{i}/admin/-/invalidate/",
+            headers={"x-access-key": DEALER_KEY},
+            json={"keys": keys},
+        )
 
 
 _REMOVE_HEADERS = (
@@ -74,6 +78,7 @@ def catch_all(p=""):
 
     if did_invalidate:
         invalidate(loads(invalidate_keys), where)
+
     debug_info = {
         "dealt-to": where,
         "cache-hit": response_headers.get("x-cached-response"),
