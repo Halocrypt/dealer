@@ -56,10 +56,9 @@ def lower_dict(d):
 
 def remove_headers(h):
     for i in _REMOVE_HEADERS:
-        try:
-            h.pop(i)
-        except:
-            pass
+
+        h.pop(i, None)
+
     return h
 
 
@@ -81,7 +80,7 @@ def catch_all(p=""):
 
     response = func(url, headers={**headers, "x-access-key": DEALER_KEY}, data=data)
     response_headers = response.headers
-    response_headers.pop("content-encoding")
+    response_headers.pop("content-encoding", None)
     invalidate_keys = response_headers.get("x-invalidate")
     did_invalidate = invalidate_keys is not None
 
