@@ -7,35 +7,23 @@ from random import choice
 from json import dumps, loads
 from threading import Thread
 import os
+from api._constants import AVAILABLE, METHODS
 
 app = Flask(__name__)
 
-methods = ["get", "post", "patch", "put", "delete"]
-
-available = ["s1.halocrypt.com", "s2.halocrypt.com", "s3.halocrypt.com"]
-
 
 def get_host():
-    return choice(available)
+    return choice(AVAILABLE)
 
 
 def others(x):
-    return [host for host in available if host != x]
+    return [host for host in AVAILABLE if host != x]
 
 
 def invalidate(keys, current):
     other_hosts = others(current)
-    threads = []
     for i in other_hosts:
-        thread = Thread(
-            target=requests.post,
-            args=(f"https://{i}/admin/-/invalidate/"),
-            kwargs={"json": keys},
-        )
-        thread.start()
-        threads.append(thread)
-    for t in threads:
-        t.join()
+        requests.post(f"https://{i}/admin/-/invalidate/", json={"keys": keys})
 
 
 _REMOVE_HEADERS = (
@@ -65,8 +53,8 @@ def remove_headers(h):
 DEALER_KEY = os.environ["DEALER_KEY"]
 
 
-@app.route("/", methods=methods)
-@app.route("/<path:p>", methods=methods)
+@app.route("/", methods=METHODS)
+@app.route("/<path:p>", methods=METHODS)
 def catch_all(p=""):
     where = get_host()
     method = request.method.lower()
