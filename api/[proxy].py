@@ -1,60 +1,22 @@
 # Ported from https://github.com/marcopolee/hookbot/blob/master/index.js
 
 
-import requests
-from flask import Flask, request, Response
-from random import choice
 from json import dumps, loads
-from threading import Thread
-import os
-from api._constants import AVAILABLE, METHODS
+from time import time
 
-app = Flask(__name__)
+import requests
+from flask import Flask, Response, request
 
-
-def get_host():
-    return choice(AVAILABLE)
-
-
-def others(x):
-    return [host for host in AVAILABLE if host != x]
-
-
-def invalidate(keys, current):
-    other_hosts = others(current)
-    for i in other_hosts:
-        requests.post(
-            f"https://{i}/admin/-/invalidate/",
-            headers={"x-access-key": DEALER_KEY},
-            json={"keys": keys},
-        )
-
-
-_REMOVE_HEADERS = (
-    "x-forwarded-host",
-    "x-forwarded-for",
-    "host",
-    "accept-encoding",
-    "x-vercel-deployment-url",
-    "x-vercel-id",
-    "x-vercel-forwarded-for",
-    "x-vercel-trace",
+from ._constants import DEALER_KEY, EXPOSE_HEADERS, METHODS
+from ._util import (
+    calc_time,
+    get_host,
+    invalidate,
+    process_request_headers,
+    process_response_headers,
 )
 
-
-def lower_dict(d):
-    return {k.lower(): v for k, v in dict(d).items()}
-
-
-def remove_headers(h):
-    for i in _REMOVE_HEADERS:
-
-        h.pop(i, None)
-
-    return h
-
-
-DEALER_KEY = os.environ["DEALER_KEY"]
+app = Flask(__name__)
 
 
 @app.route("/", methods=METHODS)
@@ -62,27 +24,40 @@ DEALER_KEY = os.environ["DEALER_KEY"]
 def catch_all(p=""):
     where = get_host()
     method = request.method.lower()
+    if method == "options":
+        return b""
     url = f"https://{where}/{p}"
 
     func = getattr(requests, method)
 
     data = request.get_data()
-    headers = remove_headers(lower_dict(request.headers))
+    headers = process_request_headers(request.headers)
     response: requests.Response
 
+    func_start_time = time()
     response = func(url, headers={**headers, "x-access-key": DEALER_KEY}, data=data)
-    response_headers = response.headers
-    response_headers.pop("content-encoding", None)
+    proxy_end_time = time()
+
+    response_headers = process_response_headers(response.headers)
+
     invalidate_keys = response_headers.get("x-invalidate")
+    
     did_invalidate = invalidate_keys is not None
 
+    invalidation_start_time = invalidation_end_time = None
     if did_invalidate:
+        invalidation_start_time = time()
         invalidate(loads(invalidate_keys), where)
+        invalidation_end_time = time()
+    func_end_time = time()
 
     debug_info = {
-        "dealt-to": where,
-        "cache-hit": response_headers.get("x-cached-response"),
-        "did-invalidate": did_invalidate,
+        "dealt_to": where,
+        "cache_hit": response_headers.get("x-cached-response"),
+        "did_invalidate": invalidate_keys,
+        "proxy_time": calc_time(proxy_end_time, func_start_time),
+        "invalidation_time": calc_time(invalidation_end_time, invalidation_start_time),
+        "total_time": calc_time(func_end_time, func_start_time),
     }
     return Response(
         response.content,
@@ -92,9 +67,6 @@ def catch_all(p=""):
         },
         status=response.status_code,
     )
-
-
-EXPOSE_HEADERS = ", ".join(("x-access-token", "x-refresh-token", "x-dynamic"))
 
 
 @app.errorhandler(500)
