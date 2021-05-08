@@ -81,6 +81,7 @@ def catch_all(p=""):
 
     response = func(url, headers={**headers, "x-access-key": DEALER_KEY}, data=data)
     response_headers = response.headers
+    response_headers.pop("content-encoding")
     invalidate_keys = response_headers.get("x-invalidate")
     did_invalidate = invalidate_keys is not None
 
