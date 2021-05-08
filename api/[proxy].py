@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 methods = ["get", "post", "patch", "put", "delete"]
 
-available = ["s.1.halocrypt.com", "s.2.halocrypt.com", "s.3.halocrypt.com"]
+available = ["s1.halocrypt.com", "s2.halocrypt.com", "s3.halocrypt.com"]
 
 
 def get_host():
@@ -37,17 +37,41 @@ def invalidate(keys, current):
         t.join()
 
 
+_REMOVE_HEADERS = (
+    "x-forwarded-host",
+    "x-forwarded-for",
+    "host",
+    "accept-encoding",
+    "x-vercel-deployment-url",
+    "x-vercel-id",
+    "x-vercel-forwarded-for",
+    "x-vercel-trace",
+)
+
+
+def lower_dict(d):
+    return {k.lower(): v for k, v in dict(d).items()}
+
+
+def remove_headers(h):
+    for i in _REMOVE_HEADERS:
+        try:
+            h.pop(i)
+        except:
+            pass
+
+
 @app.route("/", methods=methods)
 @app.route("/<path:p>", methods=methods)
 def catch_all(p=""):
     where = get_host()
     method = request.method.lower()
-    url = f"https://httpbin.org/{method}" or f"https://{where}/{p}"
+    url = f"https://{where}/{p}"
 
     func = getattr(requests, method)
 
     data = request.get_data()
-    headers = request.headers
+    headers = remove_headers(lower_dict(request.headers))
     response: requests.Response
 
     response = func(url, headers=headers, data=data)
@@ -68,6 +92,7 @@ def catch_all(p=""):
             "x-debug": dumps(debug_info),
             **response_headers,
         },
+        status=response.status_code,
     )
 
 
