@@ -2,5 +2,10 @@
   "routes": [
     { "src": "/.*", "dest": "/api/[proxy].py" },
     { "src": "/", "dest": "/api/[proxy].py" }
-  ]
+  ],
+  "functions": {
+    "api/[proxy].py": {
+      "memory": 150
+    }
+  }
 }
