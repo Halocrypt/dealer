@@ -5,7 +5,7 @@
   ],
   "functions": {
     "api/[proxy].py": {
-      "memory": 150
+      "memory": 128
     }
   }
 }
