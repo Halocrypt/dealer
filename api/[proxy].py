@@ -1,13 +1,10 @@
-# Ported from https://github.com/marcopolee/hookbot/blob/master/index.js
-
-
 from json import dumps, loads
 from time import time
 
 import requests
 from flask import Flask, Response, request
 
-from ._constants import DEALER_KEY, EXPOSE_HEADERS, METHODS
+from ._constants import DEALER_KEY, EXPOSE_HEADERS, METHODS, OPTIONS_RESPONSE
 from ._util import (
     calc_time,
     get_host,
@@ -25,7 +22,7 @@ def catch_all(p=""):
     where = get_host()
     method = request.method.lower()
     if method == "options":
-        return b""
+        return OPTIONS_RESPONSE
     url = f"https://{where}/{p}"
 
     func = getattr(requests, method)
@@ -41,7 +38,7 @@ def catch_all(p=""):
     response_headers = process_response_headers(response.headers)
 
     invalidate_keys = response_headers.get("x-invalidate")
-    
+
     did_invalidate = invalidate_keys is not None
 
     invalidation_start_time = invalidation_end_time = None

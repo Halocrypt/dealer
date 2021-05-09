@@ -1,4 +1,5 @@
 from os import environ
+from flask import Response
 
 METHODS = ["get", "post", "patch", "put", "delete"]
 
@@ -19,3 +20,4 @@ REMOVE_REQUEST_HEADERS = (
 )
 REMOVE_RESPONSE_HEADERS = ("content-encoding", "via", "alt-svc")
 EXPOSE_HEADERS = ", ".join(("x-access-token", "x-refresh-token", "x-dynamic"))
+OPTIONS_RESPONSE = Response("", status=200, headers={"x-debug": "BYPASS"})
