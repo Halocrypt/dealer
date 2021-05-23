@@ -1,12 +1,17 @@
 from os import environ
 from flask import Response
 
+DEALER_KEY = environ["DEALER_KEY"]
+ENABLE_ALL = environ.get("ENABLE_ALL")
+
 METHODS = ["get", "post", "patch", "put", "delete"]
 
-AVAILABLE = ["s1.halocrypt.com"]  # , "s2.halocrypt.com", "s3.halocrypt.com"]
+AVAILABLE = (
+    ["s1.halocrypt.com", "s2.halocrypt.com", "s3.halocrypt.com"]
+    if ENABLE_ALL == "1"
+    else ["s1.halocrypt.com"]
+)
 
-
-DEALER_KEY = environ["DEALER_KEY"]
 
 REMOVE_REQUEST_HEADERS = (
     "x-forwarded-host",
