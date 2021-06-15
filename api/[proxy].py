@@ -16,27 +16,6 @@ from ._util import (
 app = Flask(__name__)
 
 
-@app.route("/proxy/certificate/<file>")
-def certi(file):
-    method = request.method.lower()
-    if method == "options":
-        return OPTIONS_RESPONSE
-    url = f"https://h2.halocrypt.com/certificates/{file}"
-    start = time()
-    resp = requests.get(url)
-    end = time()
-    response_headers = process_response_headers(resp.headers)
-    debug = {"orig_url": url, "proxy-time": calc_time(end, start)}
-    return Response(
-        resp.content,
-        headers={
-            "content-type": response_headers.get(
-                "content-type", "application/octet-stream"
-            ),
-            "x-debug": debug,
-            "Cache-Control": "s-maxage=31536000",
-        },
-    )
 
 
 @app.route("/", methods=METHODS)

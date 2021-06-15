@@ -1,9 +1,13 @@
 {
-  "routes": [
-    { "src": "/.*", "dest": "/api/[proxy].py" },
-    { "src": "/", "dest": "/api/[proxy].py" }
+  "rewrites": [
+    { "source": "/cert/proxy/:file", "destination": "/api/certi.py" },
+    { "source": "/(.*)", "destination": "/api/[proxy].py" },
+    { "source": "/", "destination": "/api/[proxy].py" }
   ],
   "functions": {
+    "api/certi.py": {
+      "memory": 128
+    },
     "api/[proxy].py": {
       "memory": 128
     }
