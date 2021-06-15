@@ -27,7 +27,14 @@ def certi(file):
     end = time()
     response_headers = process_response_headers(resp.headers)
     debug = {"orig_url": url, "proxy-time": calc_time(end, start)}
-    return Response(resp.content, headers={**response_headers, "x-debug": debug})
+    return Response(
+        resp.content,
+        headers={
+            **response_headers,
+            "x-debug": debug,
+            "Cache-Control": "s-maxage=31536000",
+        },
+    )
 
 
 @app.route("/", methods=METHODS)
