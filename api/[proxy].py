@@ -30,7 +30,9 @@ def certi(file):
     return Response(
         resp.content,
         headers={
-            **response_headers,
+            "content-type": response_headers.get(
+                "content-type", "application/octet-stream"
+            ),
             "x-debug": debug,
             "Cache-Control": "s-maxage=31536000",
         },
