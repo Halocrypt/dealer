@@ -2,13 +2,13 @@ from os import environ
 from flask import Response
 
 DEALER_KEY = environ["DEALER_KEY"]
-ENABLE_ALL = environ.get("ENABLE_ALL")
+FALLBACK = environ.get("FALLBACK")
 
 METHODS = ["get", "post", "patch", "put", "delete"]
 
 AVAILABLE = (
-    ["s1.halocrypt.com", "s2.halocrypt.com", "s3.halocrypt.com"]
-    if ENABLE_ALL == "1"
+    ["halo21.herokuapp.com"]
+    if FALLBACK == "1"
     else ["s1.halocrypt.com"]
 )
 
